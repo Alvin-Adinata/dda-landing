@@ -1,0 +1,679 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="robots" content="noindex, nofollow">
+  <title>DDA Online Kabupaten Magelang</title>
+  <!-- Google Fonts: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  
+  <style>
+    :root {
+      --primary-orange: rgba(247, 144, 57, 1);
+      --primary-orange-hover: rgba(230, 128, 40, 1);
+      --primary-orange-light: rgba(247, 144, 57, 0.12);
+      
+      --secondary-blue: rgba(0, 57, 121, 1);
+      --secondary-blue-hover: rgba(0, 42, 90, 1);
+      --secondary-blue-light: rgba(0, 57, 121, 0.08);
+
+      --gold-accent: rgba(230, 160, 40, 0.85);
+      --text-dark: #0f172a;
+      --text-muted: #475569;
+
+      /* Variabel posisi wayang */
+      --wayang-offset: -120px;
+      --wayang-start-offset: -240px;
+    }
+
+    * { 
+      box-sizing: border-box; 
+      margin: 0; 
+      padding: 0; 
+    }
+
+    /* Mengunci halaman di desktop */
+    html, body {
+      height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+      background: radial-gradient(circle at 50% 30%, rgba(255, 248, 240, 1) 0%, rgba(245, 235, 224, 1) 100%);
+      color: var(--text-dark);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      position: relative;
+    }
+
+    /* Logo Instansi di Pojok Kanan Atas (Desktop) */
+    .top-right-logos {
+      position: absolute;
+      top: 24px;
+      right: 32px;
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      z-index: 10;
+    }
+
+    .top-right-logos img {
+      height: 38px;
+      width: auto;
+      object-fit: contain;
+      filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.05));
+    }
+
+    /* Latar Belakang Gambar Borobudur Transparan */
+    .bg-borobudur {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background-image: url('asset/borobudur.jpg');
+      background-size: cover;
+      background-position: center;
+      opacity: 0.18;
+      pointer-events: none;
+      z-index: 0;
+      filter: grayscale(20%);
+    }
+
+    /* Ambient Light Rays & Glow */
+    .bg-sunburst {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 150vw;
+      height: 150vh;
+      transform: translate(-50%, -50%);
+      background: repeating-conic-gradient(
+        from 0deg,
+        rgba(247, 144, 57, 0.03) 0deg 15deg,
+        transparent 15deg 30deg
+      );
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .bg-clouds-top {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 180px;
+      background: radial-gradient(ellipse at 50% -20%, rgba(247, 144, 57, 0.2) 0%, transparent 70%);
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .bg-blob-orange {
+      position: absolute;
+      top: 20%;
+      left: 15%;
+      width: 400px;
+      height: 400px;
+      background: rgba(247, 144, 57, 0.15);
+      filter: blur(100px);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .bg-blob-blue {
+      position: absolute;
+      bottom: 10%;
+      right: 15%;
+      width: 450px;
+      height: 450px;
+      background: rgba(0, 57, 121, 0.12);
+      filter: blur(120px);
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    /* Wrapper Kartu Utama & Wayang (Perspektif 3D) */
+    .card-wrapper {
+      position: relative;
+      width: 100%;
+      max-width: 480px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      z-index: 2;
+      perspective: 1200px;
+    }
+
+    /* Base Styling Gambar Wayang */
+    .wayang-img {
+      position: absolute;
+      top: 50%;
+      height: clamp(320px, 52vh, 450px);
+      width: auto;
+      pointer-events: none;
+      z-index: 1;
+      filter: drop-shadow(0 10px 25px rgba(0, 57, 121, 0.18));
+      transform-style: preserve-3d;
+      backface-visibility: visible;
+      will-change: transform; /* Optimasi GPU layer untuk mencegah patah/lag di 90 deg */
+      opacity: 0;
+    }
+
+    /* ---------------------------------------------------------
+       PENGATURAN ANIMASI WAYANG KIRI & KANAN
+       --------------------------------------------------------- */
+    .wayang-left {
+      left: var(--wayang-offset);
+      animation: 
+        wayangLeftEntrance 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards,
+        wayangLeftLoop 12s linear 1.5s infinite;
+    }
+
+    .wayang-right {
+      right: var(--wayang-offset);
+      animation: 
+        wayangRightEntrance 1.5s cubic-bezier(0.25, 1, 0.5, 1) forwards,
+        wayangRightLoop 12s linear 1.5s infinite;
+    }
+
+    /* =========================================================
+       KEYFRAMES ENTRANCE (MUNCUL 1x SAAT WEB DIBUKA)
+       ========================================================= */
+    @keyframes wayangLeftEntrance {
+      0% {
+        opacity: 0;
+        left: var(--wayang-start-offset);
+        transform: translateY(-50%) rotate(-35deg);
+      }
+      100% {
+        opacity: 0.85;
+        left: var(--wayang-offset);
+        transform: translateY(-50%) rotate(-18deg);
+      }
+    }
+
+    @keyframes wayangRightEntrance {
+      0% {
+        opacity: 0;
+        right: var(--wayang-start-offset);
+        transform: translateY(-50%) rotate(35deg);
+      }
+      100% {
+        opacity: 0.85;
+        right: var(--wayang-offset);
+        transform: translateY(-50%) rotate(18deg);
+      }
+    }
+
+    /* =========================================================
+       KEYFRAMES LOOP WAYANG KIRI
+       1. Floating 2x (0% - 24%)
+       2. Rotasi Cepat & Smooth -180deg dengan Midpoint -90deg (24% - 34%)
+       3. Floating 1x saat Terbalik (34% - 58%)
+       4. Rotasi Cepat & Smooth ke -360deg dengan Midpoint -270deg (58% - 68%)
+       5. Pause / Settle (68% - 100%)
+       ========================================================= */
+    @keyframes wayangLeftLoop {
+      0% {
+        opacity: 0.85;
+        transform: translateY(-50%) rotate(-18deg) rotateY(0deg);
+      }
+      /* --- Floating 2x --- */
+      6% {
+        transform: translateY(-53%) rotate(-18deg) rotateY(0deg);
+      }
+      12% {
+        transform: translateY(-47%) rotate(-18deg) rotateY(0deg);
+      }
+      18% {
+        transform: translateY(-53%) rotate(-18deg) rotateY(0deg);
+      }
+      24% {
+        transform: translateY(-50%) rotate(-18deg) rotateY(0deg);
+      }
+      /* --- Rotasi Cepat & Mulus ke -180deg --- */
+      29% {
+        transform: translateY(-51.5%) rotate(-18deg) rotateY(-90deg);
+      }
+      34% {
+        transform: translateY(-50%) rotate(-18deg) rotateY(-180deg);
+      }
+      /* --- Floating 1x (Posisi Terbalik -180deg) --- */
+      42% {
+        transform: translateY(-53%) rotate(-18deg) rotateY(-180deg);
+      }
+      50% {
+        transform: translateY(-47%) rotate(-18deg) rotateY(-180deg);
+      }
+      58% {
+        transform: translateY(-50%) rotate(-18deg) rotateY(-180deg);
+      }
+      /* --- Rotasi Cepat & Mulus ke -360deg --- */
+      63% {
+        transform: translateY(-51.5%) rotate(-18deg) rotateY(-270deg);
+      }
+      68% {
+        transform: translateY(-50%) rotate(-18deg) rotateY(-360deg);
+      }
+      /* --- Rest / Settle --- */
+      100% {
+        opacity: 0.85;
+        transform: translateY(-50%) rotate(-18deg) rotateY(-360deg);
+      }
+    }
+
+    /* =========================================================
+       KEYFRAMES LOOP WAYANG KANAN
+       1. Floating 2x (0% - 24%)
+       2. Rotasi Cepat & Smooth +180deg dengan Midpoint +90deg (24% - 34%)
+       3. Floating 1x saat Terbalik (34% - 58%)
+       4. Rotasi Cepat & Smooth ke +360deg dengan Midpoint +270deg (58% - 68%)
+       5. Pause / Settle (68% - 100%)
+       ========================================================= */
+    @keyframes wayangRightLoop {
+      0% {
+        opacity: 0.85;
+        transform: translateY(-50%) rotate(18deg) rotateY(0deg);
+      }
+      /* --- Floating 2x --- */
+      6% {
+        transform: translateY(-53%) rotate(18deg) rotateY(0deg);
+      }
+      12% {
+        transform: translateY(-47%) rotate(18deg) rotateY(0deg);
+      }
+      18% {
+        transform: translateY(-53%) rotate(18deg) rotateY(0deg);
+      }
+      24% {
+        transform: translateY(-50%) rotate(18deg) rotateY(0deg);
+      }
+      /* --- Rotasi Cepat & Mulus ke +180deg --- */
+      29% {
+        transform: translateY(-51.5%) rotate(18deg) rotateY(90deg);
+      }
+      34% {
+        transform: translateY(-50%) rotate(18deg) rotateY(180deg);
+      }
+      /* --- Floating 1x (Posisi Terbalik +180deg) --- */
+      42% {
+        transform: translateY(-53%) rotate(18deg) rotateY(180deg);
+      }
+      50% {
+        transform: translateY(-47%) rotate(18deg) rotateY(180deg);
+      }
+      58% {
+        transform: translateY(-50%) rotate(18deg) rotateY(180deg);
+      }
+      /* --- Rotasi Cepat & Mulus ke +360deg --- */
+      63% {
+        transform: translateY(-51.5%) rotate(18deg) rotateY(270deg);
+      }
+      68% {
+        transform: translateY(-50%) rotate(18deg) rotateY(360deg);
+      }
+      /* --- Rest / Settle --- */
+      100% {
+        opacity: 0.85;
+        transform: translateY(-50%) rotate(18deg) rotateY(360deg);
+      }
+    }
+
+    /* Kartu Utama */
+    .card {
+      position: relative;
+      z-index: 2;
+      background: rgba(255, 255, 255, 0.94);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      width: 100%;
+      padding: 40px 36px 32px 36px;
+      border-radius: 24px;
+      text-align: center;
+      box-shadow: 
+        0 25px 50px -12px rgba(0, 57, 121, 0.15),
+        0 0 0 1px rgba(255, 255, 255, 0.9) inset,
+        0 2px 4px rgba(0,0,0,0.04);
+    }
+
+    .card::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 6px;
+      background: linear-gradient(90deg, var(--secondary-blue) 0%, var(--primary-orange) 100%);
+      border-top-left-radius: 24px;
+      border-top-right-radius: 24px;
+    }
+
+    .icon-wrapper {
+      width: 64px;
+      height: 64px;
+      margin: 0 auto 18px auto;
+      background: linear-gradient(135deg, var(--primary-orange) 0%, var(--secondary-blue) 100%);
+      border-radius: 20px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 10px 20px rgba(247, 144, 57, 0.25);
+    }
+
+    .icon-wrapper svg {
+      width: 32px;
+      height: 32px;
+      fill: none;
+      stroke: #ffffff;
+      stroke-width: 2;
+      stroke-linecap: round;
+      stroke-linejoin: round;
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 5px 14px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      text-transform: uppercase;
+      color: var(--secondary-blue);
+      background: var(--secondary-blue-light);
+      border-radius: 50px;
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 1.6rem;
+      font-weight: 800;
+      line-height: 1.3;
+      color: var(--secondary-blue);
+      margin-bottom: 12px;
+      letter-spacing: -0.02em;
+    }
+
+    h1 span {
+      color: var(--primary-orange);
+      display: block;
+      font-size: 1.2rem;
+      font-weight: 700;
+      margin-top: 2px;
+    }
+
+    p {
+      font-size: 0.92rem;
+      line-height: 1.6;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+    }
+
+    .buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .btn {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      padding: 15px 20px;
+      border-radius: 14px;
+      text-decoration: none;
+      font-weight: 700;
+      font-size: 0.95rem;
+      transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+      cursor: pointer;
+    }
+
+    .btn svg {
+      width: 18px;
+      height: 18px;
+      transition: transform 0.2s ease;
+    }
+
+    .btn-primary {
+      background: var(--primary-orange);
+      color: #ffffff;
+      box-shadow: 0 8px 18px rgba(247, 144, 57, 0.35);
+    }
+
+    .btn-primary:hover {
+      background: var(--primary-orange-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 12px 22px rgba(247, 144, 57, 0.45);
+    }
+
+    .btn-primary:hover svg {
+      transform: translateX(4px);
+    }
+
+    .btn-outline {
+      background: transparent;
+      border: 2px solid var(--secondary-blue);
+      color: var(--secondary-blue);
+    }
+
+    .btn-outline:hover {
+      background: var(--secondary-blue);
+      color: #ffffff;
+      transform: translateY(-2px);
+      box-shadow: 0 8px 18px rgba(0, 57, 121, 0.25);
+    }
+
+    footer {
+      margin-top: 28px;
+      font-size: 0.8rem;
+      color: #94a3b8;
+      font-weight: 500;
+      border-top: 1px solid #f1f5f9;
+      padding-top: 16px;
+    }
+
+    footer strong {
+      color: var(--secondary-blue);
+    }
+
+    /* =========================================================
+       OPTIMASI KHUSUS MOBILE (< 768px)
+       ========================================================= */
+    @media (max-width: 768px) {
+      :root {
+        --wayang-offset: -35px;
+        --wayang-start-offset: -80px;
+      }
+
+      html, body {
+        height: 100vh;
+        width: 100vw;
+        overflow: hidden;
+      }
+
+      body {
+        padding: 10px;
+        align-items: center;
+        justify-content: center;
+      }
+
+      .top-right-logos {
+        top: 10px;
+        left: 50%;
+        right: auto;
+        transform: translateX(-50%);
+        gap: 12px;
+        width: max-content;
+        max-width: 95vw;
+      }
+
+      .top-right-logos img {
+        height: 32px;
+        max-width: 45vw;
+        object-fit: contain;
+      }
+
+      .card-wrapper {
+        max-width: 295px;
+        margin-top: 36px;
+      }
+
+      .card {
+        padding: 20px 16px 16px 16px;
+        border-radius: 18px;
+      }
+
+      .card::before {
+        height: 5px;
+        border-top-left-radius: 18px;
+        border-top-right-radius: 18px;
+      }
+
+      .wayang-img {
+        height: 160px;
+        opacity: 0.85;
+      }
+
+      .icon-wrapper {
+        width: 42px;
+        height: 42px;
+        margin-bottom: 8px;
+        border-radius: 12px;
+      }
+
+      .icon-wrapper svg {
+        width: 20px;
+        height: 20px;
+      }
+
+      .badge {
+        font-size: 0.65rem;
+        padding: 3px 10px;
+        margin-bottom: 6px;
+      }
+
+      h1 {
+        font-size: 1.15rem;
+        margin-bottom: 6px;
+      }
+
+      h1 span {
+        font-size: 0.9rem;
+      }
+
+      p {
+        font-size: 0.76rem;
+        line-height: 1.45;
+        margin-bottom: 14px;
+      }
+
+      .buttons {
+        gap: 8px;
+      }
+
+      .btn {
+        padding: 10px 12px;
+        font-size: 0.8rem;
+        border-radius: 10px;
+      }
+
+      .btn svg {
+        width: 15px;
+        height: 15px;
+      }
+
+      footer {
+        margin-top: 12px;
+        padding-top: 8px;
+        font-size: 0.68rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Logo Instansi di Atas -->
+  <div class="top-right-logos">
+    <img src="asset/logo-hitam.png" alt="Logo BPS Kabupaten Magelang">
+    <img src="asset/berakhlak.png" alt="Logo BerAKHLAK">
+  </div>
+
+  <!-- Latar Belakang Borobudur Transparan -->
+  <div class="bg-borobudur"></div>
+
+  <!-- Ambient Light Rays & Glow -->
+  <div class="bg-sunburst"></div>
+  <div class="bg-clouds-top"></div>
+  <div class="bg-blob-orange"></div>
+  <div class="bg-blob-blue"></div>
+
+  <!-- Container Kartu Utama & Wayang -->
+  <div class="card-wrapper">
+    <!-- Gambar Wayang Kiri -->
+    <img src="asset/wayang.png" class="wayang-img wayang-left" alt="Ornamen Wayang Kiri">
+
+    <!-- Gambar Wayang Kanan -->
+    <img src="asset/wayang.png" class="wayang-img wayang-right" alt="Ornamen Wayang Kanan">
+
+    <!-- Kartu Utama -->
+    <main class="card">
+      <div class="icon-wrapper">
+        <svg viewBox="0 0 24 24">
+          <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+          <polyline points="14 2 14 8 20 8"></polyline>
+          <line x1="16" y1="13" x2="8" y2="13"></line>
+          <line x1="16" y1="17" x2="8" y2="17"></line>
+          <polyline points="10 9 9 9 8 9"></polyline>
+        </svg>
+      </div>
+
+      <div class="badge">Portal Layanan Data</div>
+
+      <h1>
+        DDA Online
+        <span>Kabupaten Magelang</span>
+      </h1>
+
+      <p>
+        Selamat datang di layanan <strong>DDA Online</strong>. Gunakan tombol <strong>Akun DDA</strong> untuk melihat daftar akun instansi, lalu masuk ke sistem aplikasi melalui tombol <strong>DDA Online</strong>.
+      </p>
+
+      <div class="buttons">
+        <a class="btn btn-outline" href="https://docs.google.com/spreadsheets/d/11mWwIjKlBmJauIHLbeRXeoQ5523KvQ_8k4F4zcw2iy0/edit?usp=sharing" target="_blank" rel="noopener">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+            <polyline points="14 2 14 8 20 8"></polyline>
+            <line x1="8" y1="13" x2="16" y2="13"></line>
+            <line x1="8" y1="17" x2="16" y2="17"></line>
+          </svg>
+          Akun DDA
+        </a>
+
+        <a class="btn btn-primary" href="https://minh-chalkstony-plurally.ngrok-free.dev" target="_blank" rel="noopener">
+          DDA Online
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+            <polyline points="12 5 19 12 12 19"></polyline>
+          </svg>
+        </a>
+      </div>
+
+      <footer>
+        &copy; <span id="year"></span> <strong>BPS KABUPATEN MAGELANG</strong>
+      </footer>
+    </main>
+  </div>
+
+  <script>
+    document.getElementById("year").textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
